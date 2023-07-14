@@ -8,8 +8,12 @@ package it.polito.tdp.PremierLeague;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultWeightedEdge;
+
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Player;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -20,6 +24,7 @@ import javafx.scene.control.TextField;
 public class FXMLController {
 
 	private Model model;
+	Graph<Player, DefaultWeightedEdge> graph;
 
     @FXML // ResourceBundle that was given to the FXMLLoader
     private ResourceBundle resources;
@@ -47,11 +52,29 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	Match match = this.cmbMatch.getValue();
     	
+    	this.graph = this.model.creaGrafo(match.getMatchID());
+    	
+    	txtResult.appendText("#VERTICI: "+this.graph.vertexSet().size()+"\n#ARCHI: "+this.graph.edgeSet().size()+"\n");
     }
 
     @FXML
-    void doGiocatoreMigliore(ActionEvent event) {    	
+    void doGiocatoreMigliore(ActionEvent event) {  
+    	txtResult.clear();
+    	double delta = 0.0;
+    	
+    	for(Player p : this.graph.vertexSet()) {
+    		if(this.model.getBilancio(p)>=delta) {
+    			delta = this.model.getBilancio(p);
+    		}
+    	}
+    	txtResult.appendText("Giocatore migliore: ");
+    	for(Player p : this.graph.vertexSet()) {
+    		if(this.model.getBilancio(p)== delta) {
+    			txtResult.appendText(p.toString()+" "+delta);
+    		}
+    	}
     	
     }
     
@@ -73,5 +96,7 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.cmbMatch.getItems().addAll(this.model.listaMatch());
     }
 }

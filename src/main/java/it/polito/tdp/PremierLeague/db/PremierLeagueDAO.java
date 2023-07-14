@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import it.polito.tdp.PremierLeague.model.Action;
+import it.polito.tdp.PremierLeague.model.Archi;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Player;
 import it.polito.tdp.PremierLeague.model.Team;
@@ -110,5 +111,61 @@ public class PremierLeagueDAO {
 			return null;
 		}
 	}
+	
+	public List<Player> getPlayerVertices(int matchID){
+		String sql = "SELECT DISTINCT p.* "
+				+ "FROM actions a, players p "
+				+ "WHERE a.`PlayerID`=p.`PlayerID` "
+				+ "AND a.`MatchID`=? ";
+		List<Player> result = new ArrayList<Player>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, matchID);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Player player = new Player(res.getInt("PlayerID"), res.getString("Name"));
+				result.add(player);
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public List<Archi> getArchi(int matchID){
+		String sql = "SELECT distinctrow a1.`PlayerID` as p1 , a2.`PlayerID` as p2, (a1.`TotalSuccessfulPassesAll`+a1.`Assists`)/a1.`TimePlayed`-(a2.`TotalSuccessfulPassesAll`+a2.`Assists`)/a2.`TimePlayed` as peso "
+				+ "FROM actions a1, actions a2 "
+				+ "WHERE a1.`MatchID`=a2.`MatchID` "
+				+ "AND a1.`MatchID`=? "
+				+ "AND a1.`PlayerID`>a2.`PlayerID` "
+				+ "AND a1.`TeamID`<> a2.`TeamID` ";
+		List<Archi> result = new ArrayList<Archi>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, matchID);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Archi arco = new Archi(res.getInt("p1"), res.getInt("p2"), res.getDouble("peso"));
+				result.add(arco);
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
 	
 }
